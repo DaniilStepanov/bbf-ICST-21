@@ -1,0 +1,59 @@
+\newcommand{\anon}{\mathit{anon}}%
+\newcommand{\anonymize}{\text{anonymize}}%
+\newcommand{\eType}{\mathit{eType}}%
+\newcommand{\gen}{\mathit{gen}}%
+\newcommand{\genPhExpr}{\text{genPhExpr}}%
+\newcommand{\genRandomValue}{\text{genRandomValue}}%
+\newcommand{\genStdLib}{\text{genStdLib}}%
+\newcommand{\getPlaceholders}{\text{getPlaceholders}}%
+\newcommand{\getType}{\text{getType}}%
+\newcommand{\merge}{\text{merge}}%
+\newcommand{\replacePhWithExpr}{\text{replacePhWithExpr}}%
+\newcommand{\seed}{\mathit{seed}}%
+\newcommand{\type}{\mathit{type}}%
+
+\begin{frame}[fragile]
+	\frametitle{Mutation phase algorithm}
+\begin{figure}[tb]
+\setlength{\leftskip}{0cm}
+\textbf{INPUT:} seed program from generation phase $\gen$ \\
+\textbf{INPUT:} generated expressions $exprs$ \\
+\textbf{INPUT:} seed program for mutation phase $\seed$ \\
+\textbf{OUTPUT:} program will filled type placeholders \\
+\begin{algorithmic}[1]
+
+\Function{mutationPhase}{}
+    \State $\anon \leftarrow \anonymize(\seed)$
+    \State $\anon \leftarrow \merge(\anon, \gen)$
+    \For{$ph \in \getPlaceholders(\anon)$}
+        \State $e \leftarrow \genPhExpr(ph, exprs)$
+        \State $\anon \leftarrow \replacePhWithExpr(anon, ph, e)$
+    \EndFor
+    \State \Return{$\anon$}
+\EndFunction
+\end{algorithmic}
+\end{figure}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Generate phi expression algorithm}
+\begin{figure}[tb]
+\setlength{\leftskip}{0cm}
+\begin{algorithmic}[1]
+
+\Function{genPhExpr}{$ph, exprs$}
+    \State $\type \leftarrow \getType(ph)$
+    \State $r \leftarrow \left[ \, \right]$
+    \State $r \leftarrow r + \genRandomValue(\type)$
+    \State $r \leftarrow r + \genStdLib(\type)$
+    \For{$e \in exprs$}
+        \State $\eType \leftarrow \getType(ph)$
+        \If{$compatible(\type, \eType)$}
+            \State $r \leftarrow r + e$
+        \EndIf
+    \EndFor
+    \State \Return{$random(r)$}
+\EndFunction
+\end{algorithmic}
+\end{figure}
+\end{frame}

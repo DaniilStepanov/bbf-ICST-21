@@ -1,0 +1,15 @@
+\frametitle{Contact information}
+\texttt{\{stepanov, akhin, belyaev\}@kspt.icc.spbstu.ru} \\ \ \\ \ \\
+\begin{columns}
+\column{0.33\textwidth}
+	\begin{figure}
+		\includegraphics[width=0.99\linewidth]{image/polytech_logo_en}
+	\end{figure}
+\column{0.33\textwidth}
+	\begin{figure}
+		\includegraphics[width=0.99\linewidth]{image/jetbrainsLogo}
+	\end{figure}
+\end{columns}
+	\begin{figure}
+		\includegraphics[width=0.4\linewidth]{image/Reduktor}
+	\end{figure}

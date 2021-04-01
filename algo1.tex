@@ -1,0 +1,147 @@
+\begin{frame}[fragile]
+\frametitle{Generation phase algorithm}
+\newcommand{\adaptTypeParameters}{\text{adaptTypeParams}}%
+\newcommand{\args}{\mathit{args}}%
+\newcommand{\callee}{\mathit{callee}}%
+\newcommand{\call}{\mathit{call}}%
+\newcommand{\ffile}{\mathit{file}}%
+\newcommand{\findImplementation}{\text{findImplementation}}%
+\newcommand{\generateCall}{\text{genCall}}%
+\newcommand{\generateClassInstance}{\text{genClassInstance}}%
+\newcommand{\generateConstructorCall}{\text{genConstructorCall}}%
+\newcommand{\generateConstructor}{\text{genConstructor}}%
+\newcommand{\generateInstance}{\text{genInstance}}%
+\newcommand{\generateTypeParams}{\text{genTypeParams}}%
+\newcommand{\generateValue}{\text{genValue}}%
+\newcommand{\getCallables}{\text{getCallables}}%
+\newcommand{\getInstanceCallables}{\text{getInstanceCallables}}%
+\newcommand{\getRandomConstructor}{\text{getRandomConstructor}}%
+\newcommand{\hasOpenConstructor}{\text{hasOpenConstructor}}%
+\newcommand{\iCallee}{\mathit{iCallee}}%
+\newcommand{\impl}{\mathit{impl}}%
+\newcommand{\instance}{\mathit{instance}}%
+\newcommand{\is}{\ \mathit{is}\ }%
+\newcommand{\klass}{\mathit{class}}%
+\newcommand{\parameterize}{\text{parameterize}}%
+\newcommand{\randomCtor}{\mathit{randomCtor}}%
+\newcommand{\res}{\mathit{res}}%
+\newcommand{\typeParams}{\mathit{typeParams}}%
+\newcommand{\usages}{\mathit{usages}}%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\algdef{SE}[FUNCTION]{Function}{EndFunction}%
+   [2]{\algorithmicfunction\ \textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
+   {\algorithmicend\ \algorithmicfunction }
+
+\begin{figure}[tb]
+\setlength{\leftskip}{0cm}
+\small
+\textbf{INPUT:} $\ffile$ with a seed program $P$ \\
+\textbf{OUTPUT:} list of generated expressions $c_0...c_N$ \\
+\begin{algorithmic}[1]
+
+
+\Function{generationPhase}{$\ffile$}
+    \State $\res \leftarrow \left[ \, \right]$
+    
+    \For{$\callee \in \getCallables(\ffile)$}
+        \If{$\callee \is Class$}
+            \State $\instance \leftarrow \generateClassInstance(\callee, \ffile)$
+            \For{$\iCallee \in \getCallables(\instance)$}
+                \State $\res \leftarrow \res + \generateCall(\iCallee, \ffile)$
+            \EndFor
+        \Else
+            \State $\res \leftarrow \res + \generateCall(\callee, \ffile)$
+        \EndIf
+    \EndFor
+    \State \Return $\res$
+\EndFunction
+
+%\\
+%\Function{genClassInstance}{$\klass, \ffile$}
+%    \State $\typeParams \leftarrow \generateTypeParams(\klass, \ffile)$
+%    \State $\klass \leftarrow \parameterize(\klass, \typeParams)$
+%    \If{$ \neg \hasOpenConstructor(\klass)$}
+%        \State $\impl \leftarrow \findImplementation(\klass)$
+%        \If{$ \impl \neq null $}
+%            \State $\impl \leftarrow \adaptTypeParameters($
+%            \State $\qquad \impl, \klass, \typeParams)$
+%            \State \Return $\generateClassInstance(\impl, \ffile)$
+%        \Else
+%            \State \Return $null$
+%        \EndIf
+%    \EndIf
+%    \State $\randomCtor \leftarrow \getRandomConstructor(\klass)$
+%    \State \Return $\generateConstructorCall(\randomCtor, \ffile)$
+%\EndFunction
+
+% \State $\args \leftarrow \left[ \, \right]$
+% \For{$\arg \in \getArgs(\randomCtor)$}
+%     \State $\args \leftarrow \args + \generateValue(\arg)$
+% \EndFor
+
+\end{algorithmic}
+\end{figure}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Class instances generation algorithm}
+\newcommand{\adaptTypeParameters}{\text{adaptTypeParams}}%
+\newcommand{\args}{\mathit{args}}%
+\newcommand{\callee}{\mathit{callee}}%
+\newcommand{\call}{\mathit{call}}%
+\newcommand{\ffile}{\mathit{file}}%
+\newcommand{\findImplementation}{\text{findImplementation}}%
+\newcommand{\generateCall}{\text{genCall}}%
+\newcommand{\generateClassInstance}{\text{genClassInstance}}%
+\newcommand{\generateConstructorCall}{\text{genConstructorCall}}%
+\newcommand{\generateConstructor}{\text{genConstructor}}%
+\newcommand{\generateInstance}{\text{genInstance}}%
+\newcommand{\generateTypeParams}{\text{genTypeParams}}%
+\newcommand{\generateValue}{\text{genValue}}%
+\newcommand{\getCallables}{\text{getCallables}}%
+\newcommand{\getInstanceCallables}{\text{getInstanceCallables}}%
+\newcommand{\getRandomConstructor}{\text{getRandomConstructor}}%
+\newcommand{\hasOpenConstructor}{\text{hasOpenConstructor}}%
+\newcommand{\iCallee}{\mathit{iCallee}}%
+\newcommand{\impl}{\mathit{impl}}%
+\newcommand{\instance}{\mathit{instance}}%
+\newcommand{\is}{\ \mathit{is}\ }%
+\newcommand{\klass}{\mathit{class}}%
+\newcommand{\parameterize}{\text{parameterize}}%
+\newcommand{\randomCtor}{\mathit{randomCtor}}%
+\newcommand{\res}{\mathit{res}}%
+\newcommand{\typeParams}{\mathit{typeParams}}%
+\newcommand{\usages}{\mathit{usages}}%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\algdef{SE}[FUNCTION]{Function}{EndFunction}%
+   [2]{\algorithmicfunction\ \textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
+   {\algorithmicend\ \algorithmicfunction }
+
+\begin{figure}[tb]
+\setlength{\leftskip}{0cm}
+\small
+
+\begin{algorithmic}[1]
+\Function{genClassInstance}{$\klass, \ffile$}
+    \State $\typeParams \leftarrow \generateTypeParams(\klass, \ffile)$
+    \State $\klass \leftarrow \parameterize(\klass, \typeParams)$
+    \If{$ \neg \hasOpenConstructor(\klass)$}
+        \State $\impl \leftarrow \findImplementation(\klass)$
+        \If{$ \impl \neq null $}
+            \State $\impl \leftarrow \adaptTypeParameters(\impl, \klass, \typeParams)$
+            \State \Return $\generateClassInstance(\impl, \ffile)$
+        \Else
+            \State \Return $null$
+        \EndIf
+    \EndIf
+    \State $\randomCtor \leftarrow \getRandomConstructor(\klass)$
+    \State \Return $\generateConstructorCall(\randomCtor, \ffile)$
+\EndFunction
+
+\end{algorithmic}
+\end{figure}
+\end{frame}
