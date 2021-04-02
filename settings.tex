@@ -16,6 +16,11 @@
 \usepackage{wrapfig}
 \usepackage{listingsutf8}
 \usepackage{listings}
+\usepackage{tabularx}
+\usepackage{tablefootnote}
+\usepackage{verbatim}
+\usepackage{pgfplots}
+
 
 \usepackage{xcolor}
 \usepackage{adjustbox}
@@ -23,6 +28,7 @@
 
 \usepackage{svg}
 \setsvg{inkscape = inkscape -z -D}
+\definecolor{darkgreen}{rgb}{0.0, 0.45, 0.0}
 
 \lstdefinelanguage{Kotlin}{
   keywords={package, as, as?, typealias, this, super, val, var, fun, for, null, true, false, is, in, throw, return, break, continue, object, if, try, else, while, do, when, class, interface, enum, object, companion, override, public, private, get, set, import, abstract, vararg, expect, actual, where, suspend, data, internal, dynamic, final, by},
@@ -38,7 +44,9 @@
   stringstyle=\ttfamily,
   morestring=[b]",
   morestring=[s]{"""*}{*"""},
-  basicstyle=\small
+  basicstyle=\small,
+  moredelim=**[is][\color{red!75}]{@}{@},
+  moredelim=**[is][\color{darkgreen}]{~}{~}
 }
 
 \lstdefinestyle{kotlin}{

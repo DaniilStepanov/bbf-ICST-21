@@ -510,36 +510,189 @@ $\downarrow$
 	\frametitle{Implementation}
 We have implemented our approach inside a tool for Kotlin compiler fuzzing named Backend Bug Finder (BBF):
 	\begin{figure}
-		\includegraphics[width=80mm]{image/bbf_scheme}
+		\includegraphics[width=100mm]{image/bbf_scheme}
 	\end{figure}	
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}
-	\frametitle{Postprocessing}
-\end{frame}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{frame}
+\begin{frame}[fragile]
 	\frametitle{Evaluation}
+	\begin{itemize}
+		\item After running TCF for 2 weeks we found more than 50 unique, previously not reported bugs
+		\item We deduplicated them and filtered ``uninteresting''
+	\end{itemize}
+	\begin{minipage}{0.4\linewidth}
+Interesting bug:
+		\begin{lstlisting}[language=Kotlin,basicstyle=\tiny]
+fun box() {
+    when ("abcd".sumOf { 1L }) {
+        in 0..1 -> "A"
+        else -> "B"
+    }
+}
+ \end{lstlisting}
+	\end{minipage}
+	\begin{minipage}{0.1\linewidth}
+	\ \ 
+	\end{minipage}
+	\begin{minipage}{0.4\linewidth}
+Uninteresting bug:
+		\begin{lstlisting}[language=Kotlin,basicstyle=\tiny, escapechar = |]
+		
+fun box() = 
+fun() = 
+::intArrayOf
+	|
+	|
+	|
+	\end{lstlisting}
+\end{minipage}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[fragile]
+	\frametitle{Evaluation}
+	After 2 weeks of fuzzing:
+	\ \\ \ \\ \ \\
+\scalebox{0.85}{
+\begin{tabular}{| c | c | c | c | c |}
+\hline
+
+\multirow{1}{*}{\bf } & \multicolumn{1}{c|}{\bf NO SEVERITY} & \multicolumn{1}{c|}{\bf MINOR} & \multicolumn{1}{c|}{\bf NORMAL} & \multicolumn{1}{c|}{\bf MAJOR} \\
+\hline
+Frontend
+& 2 & 0 & 0 & 0  \\
+\hline
+Backend
+& 0 & 1 & 5 & 4 \\
+\hline
+Miscompilation
+& 0 & 0 & 2 & 4 \\
+\hline
+\end{tabular}
+}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[fragile]
+	\frametitle{Comparison with another approaches}
+
+\scalebox{0.85}{
+\begin{tabular}{| c | r | r | r | r | r | r | r |}
+\hline
+
+\multirow{1}{*}{\bf Results} & \multicolumn{1}{c|}{\bf M} & \multicolumn{1}{c|}{\bf G} & \multicolumn{1}{c|}{\bf EM} & \multicolumn{1}{c|}{\bf SPE} & \multicolumn{1}{c|}{\bf TCE} & \multicolumn{1}{c|}{\bf TCE + EM }  \\
+\hline
+Correct programs, \%
+& 11.9 & 0.05 & 10.7 & 24.2 & 63.4 & 13.4\\
+\hline
+Interesting bugs, \%
+& 25.0 & 0.0 & 20.0 & 100.0 & 100.0 & 16.6\\
+\hline
+Frontend crashes
+& 3 & 212 & 4 & 0 & 0 & 5\\
+\hline
+Backend crashes
+& 9 & 0 & 11 & 2 & 3 & 7\\
+\hline
+Miscompilations
+& 0 & 0 & 0 & 0 & 3 & 0\\
+\hline
+Duplicates
+& 49 & 77 & 38 & 1 & 4 & 14\\
+\hline
+\end{tabular}
+}
+
+\footnotesize{
+\begin{itemize}
+    \item (M) Mutation-based fuzzing;
+    \item (G) Grammar based generation;
+    \item (EM) M + language-specific mutations;
+    \item (SPE) Skeletal program enumeration;
+    \item (TCE) Type-centric enumeration;
+    \item (TCE + EM) TCE + language-specific mutations.
+\end{itemize}
+}
+
+\end{frame}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}
+\begin{frame}[fragile]
+	\frametitle{Cumulative number of interesting bugs found per day}
+	\begin{figure}
+\begin{tikzpicture}
+\begin{axis}[
+    x label style={at={(axis description cs:0.5,-0.1)},anchor=north},
+    y label style={at={(axis description cs:.1,.5)},anchor=south},
+    xlabel={\#days}, 
+    ylabel={\#found bugs},
+    ymin=0, ymax=20,
+    minor y tick num = 4,
+    minor x tick num = 1,
+    area style,
+    tick align=outside,
+    ]
+\addplot+[fill=black,ybar interval,mark=none,draw=black] 
+plot coordinates { 
+(0, 3) (1, 6) (2, 8) (3, 8) (4, 9) (5, 10) (6, 11) (7, 11)
+(8, 12) (9, 14) (10, 14) (11, 15) (12, 16) (13, 18) (14, 0) 
+};
+\end{axis}
+\end{tikzpicture}
+\end{figure}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[fragile]
 	\frametitle{Interesting bugs found}
+	IR backend crash~(KT-42092):
+	\ \\ \ \\
+\begin{lstlisting}[
+  language=Kotlin
+]
+fun box() {
+    val l = ArrayList<Long>()
+    l.add(@[Int]@) -> l.add(~5.inv()~)
+}
+\end{lstlisting}
+
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]
+	\frametitle{Interesting bugs found}
+	Miscompilation in default backend (KT-42064):
+	\ \\ \ \\
+\begin{lstlisting}[
+  language=Kotlin
+]
+class Kl1 : HashSet<String>()
+open class Kl2(par0: Any, par1: Any)
+
+fun box1() =
+    object : Kl2(
+        par1 = "",
+        par0 = @[String]@ -> ~Kl1().iterator().next()~
+    ) {}
+\end{lstlisting}
+
+\end{frame}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{frame}
 	\frametitle{Discussion?}
+	\begin{itemize}
+		\item Generalizability of type-centric fuzzing
+		\item Scalability of type-centric enumeration
+		\item Seed selection
+		\item Project-level fuzzing
+	\end{itemize}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -547,667 +700,10 @@ We have implemented our approach inside a tool for Kotlin compiler fuzzing named
 
 \begin{frame}
 	\frametitle{Conclusion}
+	4 pictures?
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\begin{frame}[fragile]
-%	\frametitle{Example of posted Kotlin compiler bug}
-%	\tiny{
-%	\begin{lstlisting}[language = Kotlin]
-%open class A1(y: String) {
-%    val x = "[A1.x,$y]"
-%}
-%open class A2(y: String) {
-%    val x = "[A2.x,$y]"
-%    inner open class B1 : A1 {
-%        constructor(p: String) : super("[B1.param,$p]")
-%        fun foo() = x + ";" + this@A2.x + ";"
-%    }
-%    fun bar(): String {
-%        return with(A2("#bar")) {
-%            class C : B1("bar") {}
-%            C().foo()
-%        }
-%    }
-%    fun foo() = A2("#baz").baz()
-%    fun A2.baz(): String {
-%        class C : B1("baz") {}
-%        return C().foo()
-%    }
-%}
-%fun box(): String {
-%    val r3 = A2("f").bar()
-%    if (r3 != "[A1.x,[B1.param,bar]];[A2.x,#bar];") return "$r3:"
-%    val r4 = A2("gg").foo()
-%    if (r4 != "[A1.x,[B1.param,baz]];[A2.x,#baz];") return "$r:"
-%    return "OK"
-%}
-%	\end{lstlisting}
-%	}
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{Existing methods}
-%	\begin{itemize}
-%		\item Language-agnostic methods
-%			\begin{itemize}
-%				\item Delta-debugging
-%				\item Slicing
-%				\item Hierarchical delta-debugging
-%				\item Generalized tree reduction
-%				\item Perses
-%				\item Pardis
-%			\end{itemize}
-%	\end{itemize}		
-%	
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}[fragile]
-%	\frametitle{Result of language-agnostic method application}
-%	\tiny{
-%	\begin{lstlisting}[language = Kotlin]
-%open class A1(y: String)
-%class A2(y: String) {
-%    val x = "[A2.x,$y]"
-%
-%    inner open class B1 : A1 {
-%        constructor(p: String) : super("[B1.param,$p]")
-%
-%        fun foo() = x + ";" + this@A2.x + ";"
-%    }
-%
-%    fun A2.baz(): String {
-%        class C : B1("baz")
-%        return C().foo()
-%    }
-%}
-%	\end{lstlisting}
-%	}
-%\end{frame}
-%
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}[fragile]
-%	\frametitle{Minimal reproducing sample}
-%	\begin{lstlisting}[language = Kotlin]
-%open class A1
-%
-%class A2 {
-%    open inner class B1 : A1()
-%    
-%    fun A2.baz() {
-%        class C : B1()
-%    }
-%}
-%	\end{lstlisting}
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{Existing methods}
-%	\begin{itemize}
-%		\item Language-agnostic methods
-%			\begin{itemize}
-%				\item[•] Delta-debugging
-%				\item[•] Slicing
-%				\item[•] Hierarchical delta-debugging
-%				\item[•] Generalized tree reduction
-%				\item[•] Perses
-%				\item[•] Pardis
-%			\end{itemize}
-%		\item Language-specific methods
-%			\begin{itemize}
-%				\item Text-based
-%				\item Tree-based
-%			\end{itemize}
-%		\item Combination of language-agnostic and language-specific methods
-%			\begin{itemize}
-%				\item C-Reduce
-%			\end{itemize}
-%	\end{itemize}		
-%	
-%\end{frame}
-%
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{C-Reduce}
-%		\begin{itemize}
-%				\item C language reduktor
-%				\item Set of source code plugins 
-%				\begin{itemize}
-%					\item Delta-debugging
-%					\item Source code transformations
-%					\item Result formatting
-%				\end{itemize}
-%				\item Shows better results than level-agnostic methods but have performance problems
-%		\end{itemize}
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}[fragile]
-%	\frametitle{Approach}
-%	\begin{itemize}
-%		\item So we decided to combine language-agnostic techniques and language-specific transformations
-%		\item Our approach looks as follows:
-%	\end{itemize}
-%	\begin{figure}
-%		\includegraphics[width=80mm]{image/overviewNew}
-%	\end{figure}	
-%
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}[fragile]
-%	\frametitle{Oracle}
-%	\begin{itemize}
-%		\item If $P$ fails on $T$, it should fail on $T'$ with same error
-%		\item We are checking it by comparing of error messages
-%	\end{itemize}
-%	\begin{figure}[tb]
-%	\tiny{
-%\begin{lstlisting}[style=kotlin]
-%@Error:Kotlin: [Internal Error] kotlin.codegen.CompilationException: 
-%Back-end (JVM) Internal error: wrong code generated
-%kotlin.codegen.CompilationException Back-end (JVM) Internal error:@
-%Couldn't transform method node:
-%test ()V:
-%   L0
-%    LINENUMBER 2 L0
-%   L1
-%    POP
-%   L2
-%...
-%Cause: AFTER mandatory stack transformations: incorrect bytecode
-%Element is unknown The root cause was thrown at: MethodVerifier.kt:28
-%File being compiled at position: @(10,1)@ in Main.kt
-%...
-%\end{lstlisting}
-%}
-%\end{figure}
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{Transformations}
-%	We implemented transformations over two types of representation:
-%		\begin{itemize}
-%			\item Textual
-%			\item Syntax tree
-%		\end{itemize}
-%\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{Text transformations}
-%	\begin{itemize}
-%		\item We selected about 30 of various text transformations to be used based on the following:
-%			\begin{itemize}
-%    				\item Our Kotlin programming experience
-%    				\item Transformations used in other reduction tools
-%    				\item Transformations used in the Kotlin IntelliJ IDEA plugin for code simplification
-%			\end{itemize}
-%	\end{itemize}
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}[fragile]
-%	\frametitle{Text transformations example}
-%\begin{minipage}{0.4\linewidth}
-%	Before:
-%		\begin{lstlisting}[style=crs_cpp]
-%fun f() {
-%    var a = 124125125
-%    val b = a + 1
-%    val c = 1.1
-%    var d: Double
-%    while (a.toDouble() != c) {
-%        d = a * b * c
-%        a += 1
-%    }
-%    println("a = $a")
-%}
-% \end{lstlisting}
-%	\end{minipage}
-%	\begin{minipage}{0.1\linewidth}
-%	\ \ 
-%	\end{minipage}
-%	\begin{minipage}{0.4\linewidth}
-%	After:
-%		\begin{lstlisting}[style=crs_cpp]
-%fun f() {
-%    var a = 0
-%    val b = a + 1
-%    val c = 0.0
-%    var d: Double
-%    if (a.toDouble() != c) {
-%        d = a * b
-%        a++
-%    }
-%    println("")
-%}
-% \end{lstlisting}
-%	\end{minipage}
-%\end{frame}
-%
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{Syntax tree based transformations}
-%	\begin{itemize}
-%	\item More than 30 transformations
-%	\item Can be divided on the next groups:
-%	\begin{itemize}
-%    		\item Expression simplification
-%    		\item Removal of unneeded components
-%    		\item Simplification of interdependencies
-%    		\item Others
-%	\end{itemize}
-%	\end{itemize}
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}[fragile]
-%	\frametitle{Syntax tree based transformations example}
-%		\begin{lstlisting}[style=Kotlin]
-%fun f(a: Int): @@String@@ {
-%    val answer = when (a) {
-%        1 -> "1"
-%        2 -> "2"
-%        @3 -> "4"@
-%        else -> ""
-%    }
-%    @@return answer@@
-%}
-% \end{lstlisting}
-%
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}[fragile]
-%	\frametitle{Syntax tree based transformations example}
-%		\begin{lstlisting}[style=Kotlin]
-%fun f(a: Int) {
-%    @@val answer =@@ when (a) {
-%        1 -> "1"
-%        2 -> "2"
-%        3 -> "4"
-%        else -> ""
-%    }
-%}
-% \end{lstlisting}
-%
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}[fragile]
-%	\frametitle{Syntax tree based transformations example}
-%		\begin{lstlisting}[style=Kotlin]
-%fun f(a: Int) {
-%    when (a) {
-%        @@1 -> "1"
-%        2 -> "2"@@
-%        3 -> "4"
-%        else -> ""
-%    }
-%}
-% \end{lstlisting}
-%
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}[fragile]
-%	\frametitle{Syntax tree based transformations example}
-%		\begin{lstlisting}[style=Kotlin]
-%fun f(@@a: Int@@) {
-%    when (@@a@@) {
-%        3 -> "4"
-%        else -> ""
-%    }
-%}
-% \end{lstlisting}
-%
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}[fragile]
-%	\frametitle{Syntax tree based transformations example}
-%		\begin{lstlisting}[style=Kotlin]
-%fun f() {
-%    when (1) {
-%        3 -> "4"
-%        else -> ""
-%    }
-%}
-% \end{lstlisting}
-%
-%\end{frame}
-%
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\begin{itemize}
-%		\frametitle{Slicing}
-%		\item Slicing creates a program slice, free of unneeded parts w.r.t. slicing criterion
-%		\item For our purposes we decided to implement a static backward slicing over the syntax trees on the following levels:
-%		\begin{itemize}
-%			\item Intraprocedural level
-%			\item Function level
-%			\item Class level
-%		\end{itemize}
-%	\end{itemize}
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}[fragile]
-%	\frametitle{Slicing example}
-%		\tiny
-%	\begin{lstlisting}[style=kotlin]
-%class Square(private val a: Double) {
-%
-%    fun getPerimeter(): Double = a * 4
-%
-%    fun getSquare(): Double = a * a
-%}
-%
-%
-%class Triangle(private val a: Double, private val b: Double, 
-%               private val c: Double) {
-%
-%    fun getPerimeter(): Double = a + b + c
-%
-%    fun getSquare(): Double {
-%        var square = 0.0
-%        if (a * a + b * b == c * c) {
-%            @square = a * b / 2@
-%        } else {
-%            val p = getPerimeter() / 2
-%            square = Math.sqrt(p * (p - a) * (p - b) * (p - c))
-%        }
-%        return square
-%    }
-%
-%}
-%\end{lstlisting}
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}[fragile]
-%	\frametitle{Slicing result}
-%	\tiny
-%	\begin{lstlisting}[style=kotlin]
-%class Triangle(private val a: Double, private val b: Double, 
-%               private val c: Double) {
-%
-%    fun getSquare(): Double {
-%        var square = 0.0
-%        if (a * a + b * b == c * c) {
-%            @square = a * b / 2@
-%        } else { }
-%        return square
-%    }
-%
-%}
-%\end{lstlisting}
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}[fragile]
-%	\frametitle{Hierarchical delta debugging}
-%	\begin{itemize}
-%	\item Delta-debugging over syntax tree
-%	\item Suppose that we have next sample:
-%	\end{itemize}
-%	\tiny
-%		\begin{lstlisting}[style=kotlin]
-%fun f() {
-%    val a = 1
-%    var b = 0
-%    
-%    if (a != 0) b += 1
-%    else b += 2
-%    
-%    while (b != 0) @- - b@
-%}
-%\end{lstlisting}
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{Hierarchical delta debugging example}
-%	\begin{figure}
-%		\includegraphics[height=42mm]{image/hdd1}
-%	\end{figure}	
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{Hierarchical delta debugging example}
-%	\begin{figure}
-%		\includegraphics[height=50mm]{image/hdd2}
-%	\end{figure}	
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{Project level simplification}
-%	\begin{itemize}
-%		\item We need to support reduction of the projects
-%		\item First we have to remove project dependencies
-%		\item In Kotlin dependencies of a file are defined via import lists or fully qualified names
-%		\item These elements form the dependency tree, which may be used to guide the simplification process
-%	\end{itemize}
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}[fragile]
-%	\frametitle{Project dependencies example} 
-%	\begin{figure}
-%		\includegraphics[height=80mm]{image/depTreeExample}
-%	\end{figure}	
-%\end{frame}
-%
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{Transformation order}
-%	\begin{itemize}
-%		\item Final result may be affected by the order
-%		\item Overall performance also depends on the transformation order
-%		\item We decided to apply transformations in the order of their “reductiveness”
-%	\end{itemize}
-%	\begin{figure}
-%		\includegraphics[width=30mm]{image/order}
-%	\end{figure}	
-%\end{frame}
-%
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{Resulting pipeline}
-%	The resulting pipeline is as follows:
-%	\begin{itemize}
-%		\item Project-level simplifications
-%		\item Slicing
-%		\item Text based transformations
-%		\item Syntax tree based transformations
-%		\item Hierarchical delta debugging
-%	\end{itemize}
-%	Every transformation is applied in order until convergence, i.e., until its input stops decreasing in size.
-%\end{frame}
-%
-%%%%%%%%%%%%
-%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{Implementation}
-%	We implemented a prototype tool based on our approach
-%%	\begin{figure}
-%%		\includegraphics[width=30mm]{image/Reduktor}
-%%	\end{figure}	
-%	\begin{itemize}
-%		\item We decided to use Kotlin compiler like a library
-%		\item Parallel processing of independent files
-%		\item Caching
-%	\end{itemize}
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%
-%\begin{frame}
-%	\frametitle{Evaluation}
-%	For the evaluation, we run ReduKtor for Kotlin compiler version 1.3.10 on two types of input:
-%	\begin{itemize}
-%		\item Results of Kotlin compiler fuzzer + data from bug tracker
-%		\item Number of real-world projects were injected with invalid code
-%	\end{itemize}
-%	\begin{figure}
-%		\includegraphics[width=100mm]{image/table1}
-%	\end{figure}	
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{Evaluation}
-%	\begin{figure}
-%		\includegraphics[width=110mm]{image/ev1}
-%	\end{figure}	
-%	\begin{figure}
-%		\includegraphics[width=100mm]{image/ev2}
-%	\end{figure}	
-%\end{frame}
-%
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%%\begin{frame}
-%%	\frametitle{Lessons learned}
-%%	\begin{itemize}
-%%		\item Slicing impact on the input reduction is negligible
-%%		\item Language-specific transformations outperform the language-agnostic techniques
-%%		\item The results of language-specific transformations can be improved by applying language-agnostic techniques to their results
-%%	\end{itemize}
-%%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{Lessons learned}
-%	Slicing impact on the input reduction is negligible
-%	\begin{figure}
-%		\includegraphics[width=50mm]{image/ev3}
-%	\end{figure}	
-%		\begin{figure}
-%		\includegraphics[width=40mm]{image/ev4}
-%	\end{figure}	
-%\end{frame}
-%
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{Lessons learned}
-%	Language-specific transformations outperform the language-agnostic techniques
-%	\begin{figure}
-%		\includegraphics[width=60mm]{image/ev5}
-%	\end{figure}	
-%		\begin{figure}
-%		\includegraphics[width=50mm]{image/ev6}
-%	\end{figure}	
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{Lessons learned}
-%	The results of language-specific transformations can be improved by applying language-agnostic techniques to their results
-%	\begin{figure}
-%		\includegraphics[width=60mm]{image/ev7}
-%	\end{figure}	
-%		\begin{figure}
-%		\includegraphics[width=50mm]{image/ev8}
-%	\end{figure}	
-%\end{frame}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\begin{frame}
-%	\frametitle{Conclusion}
-%	4 pictures???
-%%	\begin{itemize}
-%%		\item We present an approach to automatic input reduction for the Kotlin
-%%		\item Implemented a tool called ReduKtor and applied it for some samples
-%%		\item 
-%%		\item We have already started to collaborate with the Kotlin team
-%%	\end{itemize}
-%\end{frame}
-%
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{frame}[fragile]
 \frametitle{Contact information}
